@@ -1,38 +1,26 @@
 
+from time import sleep
 import socket
 
-HOST = "192.168.1.36" # IP address of your Raspberry PI
+from temp_monitor import measure_temp
+
+
+
+HOST = "192.168.86.206" # IP address of your Raspberry PI
 PORT = 65432  
-from pickle import FALSE
-from random import randrange
-import time
+
+from concurrent.futures import thread
+import threading
 from lib.motor import Motor
-from lib.servo import Servo
-from lib.ultrasonic import Ultrasonic 
 from lib.pwm import PWM
 from lib.pin import Pin
-#import picar
-speed = 0
-direction = ""
+import json
+import traceback
+import time
+
 fwd_speed = 30
 bwd_speed = 15
 turn_speed = 10
-ultrasonic_servo_offset = 0 
-
-ANGLE_RANGE = 180
-STEP = 18
-us_step = STEP
-angle_distance = [0,0]
-current_angle = 0
-max_angle = ANGLE_RANGE/2
-min_angle = -ANGLE_RANGE/2
-scan_list = []
-
-# Init Ultrasonic
-us = Ultrasonic(Pin('D8'), Pin('D9'))
-
-# Init Servo
-servo = Servo(PWM("P0"), offset=ultrasonic_servo_offset)
 
 # Init motors
 left_front = Motor(PWM("P13"), Pin("D4"), is_reversed=False) # motor 1
@@ -87,36 +75,71 @@ def drive(data):
         if data == b"F":
             print("forward")
             forward(fwd_speed)
+            time.sleep(0.1)
+            stop()
         elif data == b"D":
             print("backward")
             backward(bwd_speed)
+            time.sleep(0.1)
+            stop()
         elif data == b"L":
             print("left")
             turn_left(turn_speed)
+            time.sleep(0.1)
+            stop()
         elif data == b"R":
             print("right")
             turn_right(turn_speed)
+            time.sleep(0.1)
+            stop()
         elif data == b"S":
             print("stop")
-            forward(0)
+            stop()
+            time.sleep(0.1)
+def destroy():
+    print("Interrupted")
 
         # Port to listen on (non-privileged ports are > 1023)
+def main():
+    global squareGrid
 
-with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    s.bind((HOST, PORT))
-    s.listen()
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind((HOST, PORT))
+        s.listen()
+        client, clientInfo = s.accept()
+        print("server recv from: ", clientInfo)
 
+        background_thread = threading.Thread(target=receive_and_print, args=(client, ))
+        background_thread.daemon = True
+        background_thread.start()
+
+        try:
+            while 1: 
+                time.sleep(2)
+                data = {}
+                data['temp'] = measure_temp() 
+                jsonString  = json.dumps(data)
+                client.sendall(jsonString.encode('utf-8')) # Echo back to client
+                
+        except Exception as e:
+            print(e)
+            print(traceback.format_exc())
+            print("Closing socket")
+            client.close()
+            s.close()    
+
+def receive_and_print(client):
+    while 1:
+        print("in loop")
+        data = client.recv(1024)      # receive 1024 Bytes of message in binary format
+        print(data)
+        if data != b"":
+            drive(data) 
+
+if __name__ == '__main__':
     try:
-        while 1:
-            client, clientInfo = s.accept()
-            print("server recv from: ", clientInfo)
-            data = client.recv(1024)      # receive 1024 Bytes of message in binary format
-            print(data)
-            if data != b"":
-                drive(data)                
-                client.sendall(data) # Echo back to client
-    except: 
-        print("Closing socket")
-        client.close()
-        s.close()    
+        main()
+    except KeyboardInterrupt:
+        destroy()
+
 

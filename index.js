@@ -1,12 +1,33 @@
 document.onkeydown = updateKey;
 document.onkeyup = resetKey;
-
+const net = require('net');
 var server_port = 65432;
-var server_addr = "192.168.1.36";   // the IP address of your Raspberry PI
+var server_addr = "192.168.86.206";   // the IP address of your Raspberry PI
+const piClient = net.createConnection({ port: server_port, host: server_addr })
 
+function register(){
+    console.log("to register ", piClient)
+    piClient.on('connect', () => {
+        console.log('connected to pi server!');
+    });
+    // get the data from the server
+    piClient.on('data', (data) => {
+        //document.getElementById("bluetooth").innerHTML = data;
+        document.getElementById("bluetooth").innerHTML = data;
+        
+        console.log(data.toString());
+    
+        // client.end();
+        // client.destroy();
+    });
+
+    piClient.on('end', () => {
+        console.log('disconnected from pi server');
+    });
+}
 function client(value){
     
-    const net = require('net');
+
     var input = document.getElementById("message").value;
 
     const client = net.createConnection({ port: server_port, host: server_addr }, () => {
@@ -24,8 +45,8 @@ function client(value){
         
         console.log(data.toString());
  
-        client.end();
-        client.destroy();
+        // client.end();
+        // client.destroy();
     });
 
     client.on('end', () => {
@@ -78,6 +99,7 @@ function resetKey(e) {
 function update_data(value){
  //   setInterval(function(){
         // get image from python server
-        client(value);
+        //client(value);
+        piClient.write(value);
    // }, 50);
 }
