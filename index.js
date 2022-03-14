@@ -28,7 +28,6 @@ function register(){
     piClient.on('end', () => {
         console.log('disconnected from pi server');
     });
-    registerCamera()
 }
 
 
