@@ -32,12 +32,12 @@
     <div class="container">
         <div class="jumbotron text-center col-md-6">
             <span>&nbsp;&nbsp;</span>
-            <button class="btn btn-upArrow"
+            <button class="btn btn-upArrow" id="upArrow" 
                     style =     "color:deepskyblue;font-size:50px;text-shadow: 2px 2px";
                 onclick="update_data('F')">&#8679;</button>
             <!--span id="upArrow" style='font-size:50px; color:blue;'>&#8679;</span-->
             <br>
-            <button class="btn btn-lefArrow"
+            <button class="btn btn-lefArrow" id="leftArrow"
                 style =     "color:deepskyblue;font-size:50px;text-shadow: 2px 2px";
                 onclick="update_data('L')">&#8678;</button>
             <!--span id="leftArrow" style='font-size:45px; color:blue;'>&#8678;</span-->
@@ -46,13 +46,13 @@
                 style =     "background-color:red;color:white;font-size:15px;text-shadow: 2px 2px";
                 onclick="update_data('S')">STOP</button>
             <span>&nbsp;&nbsp;&nbsp;&nbsp;</span>
-            <button class="btn btn-rightArrow"
+            <button class="btn btn-rightArrow" id="rightArrow"
                 style =     "color:deepskyblue;font-size:50px;";
                 onclick="update_data('R')">&#8680;</button>
             <!--span id="rightArrow" style='font-size:45px; color:blue;'>&#8680;</span-->
             <br>
             <span>&nbsp;&nbsp;</span>
-            <button class="btn btn-downArrow"
+            <button class="btn btn-downArrow" id="downArrow"
                 style =     "color:deepskyblue;font-size:50px;text-shadow: 2px 2px";
                 onclick="update_data('D')">&#8681;</button>
             <!--span id="downArrow" style='font-size:50px; color:blue;'>&#8681;</span-->
@@ -61,16 +61,15 @@
         <div class="jumbotron text-left col-md-6">
         <button class="btn btn-success" onclick="register()">Connect</button>
           <p>
-            <span id="direction_dot" style="color:Green">&bull;</span> Car Direction: <span id="direction"> </span>
-           <br>
            <span id="speed_dot" style="color:green">&bull;</span> Speed: <span id="speed">0.0</span>  
            <br>
            <span id="distance_dot" style="color:green">&bull;</span> Distance Traveled: <span id="distance">0.0</span>
            <br>
            <span id="temprature_dot" style="color:green">&bull;</span> Temperature of the Pi: <span id="temperature">0.0</span>
            <br>
-           Bluetooth return value: <span id="bluetooth"> </span>
           </p>  
+          <!--img  width="200" height="200" id='pifeed'>
+
         </div>
     </div>
 </div>

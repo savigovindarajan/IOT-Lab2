@@ -1,9 +1,11 @@
 document.onkeydown = updateKey;
 document.onkeyup = resetKey;
 const net = require('net');
+var server_camera_port = 9000;
 var server_port = 65432;
 var server_addr = "192.168.86.206";   // the IP address of your Raspberry PI
 const piClient = net.createConnection({ port: server_port, host: server_addr })
+const piCameraClient = net.createConnection({ port: server_camera_port, host: server_addr })
 
 function register(){
     console.log("to register ", piClient)
@@ -13,17 +15,56 @@ function register(){
     // get the data from the server
     piClient.on('data', (data) => {
         //document.getElementById("bluetooth").innerHTML = data;
-        document.getElementById("bluetooth").innerHTML = data;
-        
         console.log(data.toString());
-    
-        // client.end();
-        // client.destroy();
+        var obj = JSON.parse(data);
+        console.log(obj);
+   
+        document.getElementById("temperature").innerHTML = obj.temp;
+        document.getElementById("speed").innerHTML = obj.speed
+        document.getElementById("distance").innerHTML = obj.distance;
+   
     });
 
     piClient.on('end', () => {
         console.log('disconnected from pi server');
     });
+    registerCamera()
+}
+
+function registerCamera(){
+    console.log("to register ", piClient)
+    piCameraClient.on('connect', () => {
+        console.log('connected to pi camera server!');
+    });
+    // get the data from the server
+    piCameraClient.on('data', (data) => {
+        console.log("image data ",data);
+        //document.getElementById("bluetooth").innerHTML = data;
+
+
+        //imgElement = document.getElementById("pifeed")
+
+
+        //img.src = 'data:image/jpeg;base64,' + data.buffer;
+        //var base64String = Buffer.from(data.buffer, 'hex').toString('base64')
+
+        // var img = new Image();
+        // img.src = 'data:image/jpeg;base64,' + base64String;
+        // imgElement.drawImage(img, 0, 0);
+
+        //imgElement.src = 'data:image/jpeg;base64,' + data;
+        
+
+
+    });
+
+    piCameraClient.on('end', () => {
+        console.log('disconnected from pi camera server');
+    });
+}
+
+function hexToBase64(str) {
+    return btoa(String.fromCharCode.apply(null, str.replace(/\r|\n/g, "").replace(/([\da-fA-F]{2}) ?/g, "0x$1 ").replace(/ +$/, "").split(" ")));
 }
 function client(value){
     

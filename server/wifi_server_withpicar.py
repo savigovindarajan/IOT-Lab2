@@ -1,4 +1,5 @@
 
+from camera import camera_stream
 from time import sleep
 import socket
 
@@ -21,6 +22,7 @@ import time
 fwd_speed = 30
 bwd_speed = 15
 turn_speed = 10
+distance = 0
 
 # Init motors
 left_front = Motor(PWM("P13"), Pin("D4"), is_reversed=False) # motor 1
@@ -71,27 +73,32 @@ def set_motor_power(motor, power):
         right_rear.set_power(power)
 
 def drive(data):
+        global distance
         print("in drive")
         if data == b"F":
             print("forward")
             forward(fwd_speed)
             time.sleep(0.1)
             stop()
+            distance += 1
         elif data == b"D":
             print("backward")
             backward(bwd_speed)
             time.sleep(0.1)
             stop()
+            distance += 1
         elif data == b"L":
             print("left")
             turn_left(turn_speed)
             time.sleep(0.1)
             stop()
+            distance += 1
         elif data == b"R":
             print("right")
             turn_right(turn_speed)
             time.sleep(0.1)
             stop()
+            distance += 1
         elif data == b"S":
             print("stop")
             stop()
@@ -101,7 +108,10 @@ def destroy():
 
         # Port to listen on (non-privileged ports are > 1023)
 def main():
-    global squareGrid
+    global distance
+    # camera_thread = threading.Thread(target=camera_stream, args=(HOST,9000, ))
+    # camera_thread.daemon = True
+    # camera_thread.start()
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind((HOST, PORT))
@@ -109,7 +119,7 @@ def main():
         client, clientInfo = s.accept()
         print("server recv from: ", clientInfo)
 
-        background_thread = threading.Thread(target=receive_and_print, args=(client, ))
+        background_thread = threading.Thread(target=receive_and_drive, args=(client, ))
         background_thread.daemon = True
         background_thread.start()
 
@@ -118,6 +128,8 @@ def main():
                 time.sleep(2)
                 data = {}
                 data['temp'] = measure_temp() 
+                data['distance'] = distance
+                data['speed'] = fwd_speed
                 jsonString  = json.dumps(data)
                 client.sendall(jsonString.encode('utf-8')) # Echo back to client
                 
@@ -125,10 +137,11 @@ def main():
             print(e)
             print(traceback.format_exc())
             print("Closing socket")
+        finally: 
             client.close()
-            s.close()    
+            s.close()   
 
-def receive_and_print(client):
+def receive_and_drive(client):
     while 1:
         print("in loop")
         data = client.recv(1024)      # receive 1024 Bytes of message in binary format
